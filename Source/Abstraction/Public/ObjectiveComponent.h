@@ -33,6 +33,8 @@ public:
 	EObjectiveState GetState() const { return State; }
 
 	void SetState(EObjectiveState NewState);
+
+	void InitializeComponent();
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

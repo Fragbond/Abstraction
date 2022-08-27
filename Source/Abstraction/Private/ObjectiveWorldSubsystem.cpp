@@ -2,22 +2,39 @@
 
 
 #include "ObjectiveWorldSubsystem.h"
-#include "ObjectiveComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "../AbstractionGameModeBase.h"
+#include "Blueprint/UserWidget.h"
+#include "ObjectiveHud.h"
 
-void UObjectiveWorldSubsystem::CreateObjectiveWidget(TSubclassOf<UUserWidget> ObjectiveWidgetClass)
+void UObjectiveWorldSubsystem::CreateObjectiveWidget()
 {
 	if (ObjectiveWidget == nullptr)
 	{
-		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-		ObjectiveWidget = CreateWidget<UUserWidget>(PlayerController, ObjectiveWidgetClass);
+		AAbstractionGameModeBase* GameMode = Cast<AAbstractionGameModeBase>(GetWorld()->GetAuthGameMode());
+		if (GameMode)
+		{
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			ObjectiveWidget = CreateWidget<UObjectiveHud>(PlayerController, GameMode->ObjectiveWidgetClass);
+			ObjectivesCompleteWidget = CreateWidget<UUserWidget>(PlayerController, GameMode->ObjectivesCompleteWidgetClass);
+		}
 	}
 }
 
-void UObjectiveWorldSubsystem::DisplayObjectiveWidget()
+void UObjectiveWorldSubsystem::Deinitialize()
 {
-	ensureMsgf(ObjectiveWidget, TEXT("UObjectiveWorldSubsystem::DisplayObjectiveWidget ObjectiveWidget is nullptr"));
-	ObjectiveWidget->AddToViewport();
+	Super::Deinitialize();
+
+	ObjectiveWidget = nullptr;
+	ObjectivesCompleteWidget = nullptr;
+}
+
+void UObjectiveWorldSubsystem::DisplayObjectivesCompleteWidget()
+{
+	if (ObjectivesCompleteWidget)
+	{
+		ObjectivesCompleteWidget->AddToViewport();
+	}
 }
 
 FString UObjectiveWorldSubsystem::GetCurrentObjectiveDescription()
@@ -48,10 +65,59 @@ void UObjectiveWorldSubsystem::AddObjective(UObjectiveComponent* ObjectiveCompon
 
 void UObjectiveWorldSubsystem::RemoveObjective(UObjectiveComponent* ObjectiveComponent)
 {
-	Objectives.Remove(ObjectiveComponent);
+	if (ObjectivesCompleteWidget)
+	{
+		ObjectiveWidget->RemoveFromViewport();
+	}
+}
+
+void UObjectiveWorldSubsystem::DisplayObjectiveWidget()
+{
+	if (ObjectiveWidget)
+	{
+		if (!ObjectiveWidget->IsInViewport())
+		{
+			ObjectiveWidget->AddToViewport();
+		}
+
+		ObjectiveWidget->UpdateObjectiveText(GetCompletedObjectiveCount(), Objectives.Num());
+	}
+}
+
+void UObjectiveWorldSubsystem::RemoveObjectiveWidget()
+{
+	if (ObjectiveWidget)
+	{
+		ObjectiveWidget->RemoveFromViewport();
+	}
+}
+
+uint32 UObjectiveWorldSubsystem::GetCompletedObjectiveCount()
+{
+	uint32 ObjectivedCompleted = 0u;
+	for (const UObjectiveComponent* OC : Objectives)
+	{
+		if (OC && OC->GetState() == EObjectiveState::OS_Completed)
+		{
+			++ObjectivedCompleted;
+		}
+	}
+	return ObjectivedCompleted;
 }
 
 void UObjectiveWorldSubsystem::OnObjectiveStateChanged(UObjectiveComponent* ObjectiveComponent, EObjectiveState ObjectiveState)
 {
-	DisplayObjectiveWidget();
+	if (Objectives.Num() == 0 || !Objectives.Contains(ObjectiveComponent))
+	{
+		return;
+	}
+
+	if (ObjectiveWidget && ObjectivesCompleteWidget)
+	{
+		if (GetCompletedObjectiveCount() == Objectives.Num())
+		{
+			DisplayObjectivesCompleteWidget();
+		}
+			DisplayObjectiveWidget();
+	}
 }

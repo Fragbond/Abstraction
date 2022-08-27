@@ -6,7 +6,12 @@
 #include "GameFramework/Character.h"
 #include "AbstractionPlayerCharacter.generated.h"
 
+class UDamageHandlerComponent;
 class UHealthComponent;
+class UParticleSystemComponent;
+
+DECLARE_MULTICAST_DELEGATE(FOnInteractionStart);
+DECLARE_MULTICAST_DELEGATE(FOnInteractionCancel);
 
 UCLASS()
 class ABSTRACTION_API AAbstractionPlayerCharacter : public ACharacter
@@ -15,7 +20,7 @@ class ABSTRACTION_API AAbstractionPlayerCharacter : public ACharacter
 
 public:
 	// Sets default values for this character's properties
-	AAbstractionPlayerCharacter();
+	AAbstractionPlayerCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -27,12 +32,27 @@ public:
 	virtual void FellOutOfWorld(const class UDamageType& dmgType) override;
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Abstraction")
+	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
+
+	FOnInteractionStart OnInteractionStart;
+	FOnInteractionCancel OnInteractionCancel;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystemComponent* ParticleSystemComponent;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void OnDeath(bool IsFellOut);
 
+	void StartInteraction();
+	void StopInteraction();
+
 	UPROPERTY(EditAnywhere)
 	UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditAnywhere)
+	UDamageHandlerComponent* DamageHandlerComponent;
 };

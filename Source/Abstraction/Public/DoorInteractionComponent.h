@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InteractionComponent.h"
 #include "Components/ActorComponent.h"
 #include "Curves/CurveFloat.h"
 #include "DoorInteractionComponent.generated.h"
@@ -20,7 +21,7 @@ enum class EDoorState
 };
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ABSTRACTION_API UDoorInteractionComponent : public UActorComponent
+class ABSTRACTION_API UDoorInteractionComponent : public UInteractionComponent
 {
 	GENERATED_BODY()
 
@@ -28,19 +29,23 @@ public:
 	UDoorInteractionComponent();
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-	DECLARE_EVENT(FDoorInteractionComponent, FOpened)
-	FOpened& OnOpened() { return OpenedEvent; }
-
-	FOpened OpenedEvent;
-
 	static void OnDebugToggled(IConsoleVariable* Var);
-	void DebugDraw();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 	
+	void InteractionStart() override;
+
+	UFUNCTION(BlueprintCallable)
+	void OpenDoor();
+
 	void OnDoorOpen();
+
+	UFUNCTION(BlueprintCallable)
+	bool IsOpen() { return DoorState == EDoorState::DS_Open; }
+
+	void DebugDraw();
 
 	UPROPERTY(EditAnywhere)
 	FRotator DesiredRotation = FRotator::ZeroRotator;
