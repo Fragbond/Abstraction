@@ -33,6 +33,12 @@ public:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
+	UFUNCTION(BlueprintCallable)
+	const bool IsAlive() const;
+
+	UFUNCTION(BlueprintCallable)
+	const float GetCurrentHealth() const;
+
 	UFUNCTION(BlueprintCallable, Category = "Abstraction")
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
@@ -47,6 +53,9 @@ protected:
 
 	void OnDeath(bool IsFellOut);
 
+	UFUNCTION()
+	void OnDeathTimerFinished();
+
 	void StartInteraction();
 	void StopInteraction();
 
@@ -55,4 +64,9 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	UDamageHandlerComponent* DamageHandlerComponent;
+
+	UPROPERTY(EditAnywhere)
+	float TimeRestartLevelAfterDeath = 2.0f;
+
+	FTimerHandle RestartLevelTimerHandle;
 };

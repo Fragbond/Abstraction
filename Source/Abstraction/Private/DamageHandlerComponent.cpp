@@ -34,24 +34,27 @@ void UDamageHandlerComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		FScopeLock Lock(&CriticalSection);
 		if (ActiveDamageInfo.IsSet())
 		{
-			if (PlayerCharacter->ParticleSystemComponent)
+			if (ActiveDamageInfo.GetValue().AccumulatedTime > ActiveDamageInfo.GetValue().Lifetime)
 			{
-				PlayerCharacter->ParticleSystemComponent->Deactivate();
-				PlayerCharacter->ParticleSystemComponent->SetTemplate(nullptr);
+				if (PlayerCharacter->ParticleSystemComponent)
+				{
+					PlayerCharacter->ParticleSystemComponent->Deactivate();
+					PlayerCharacter->ParticleSystemComponent->SetTemplate(nullptr);
+				}
+				ActiveDamageInfo.Reset();
 			}
-			ActiveDamageInfo.Reset();
-		}
-		else
-		{
-			ActiveDamageInfo.GetValue().AccumulatedTime += DeltaTime;
-			ActiveDamageInfo.GetValue().CurrentIntervalTime += DeltaTime;
-			if (ActiveDamageInfo.GetValue().CurrentIntervalTime > ActiveDamageInfo.GetValue().IntervalTime)
+			else
 			{
-				float ModifiedDamage = ActiveDamageInfo.GetValue().BaseDamage / (ActiveDamageInfo.GetValue().Lifetime / ActiveDamageInfo.GetValue().IntervalTime);
-				TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
-				FDamageEvent DamageEvent(ValidDamageTypeClass);
-				PlayerCharacter->TakeDamage(ModifiedDamage, DamageEvent, nullptr, GetOwner());
-				ActiveDamageInfo.GetValue().CurrentIntervalTime = 0.0f;
+				ActiveDamageInfo.GetValue().AccumulatedTime += DeltaTime;
+				ActiveDamageInfo.GetValue().CurrentIntervalTime += DeltaTime;
+				if (ActiveDamageInfo.GetValue().CurrentIntervalTime > ActiveDamageInfo.GetValue().IntervalTime)
+				{
+					float ModifiedDamage = ActiveDamageInfo.GetValue().BaseDamage / (ActiveDamageInfo.GetValue().Lifetime / ActiveDamageInfo.GetValue().IntervalTime);
+					TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+					FDamageEvent DamageEvent(ValidDamageTypeClass);
+					PlayerCharacter->TakeDamage(ModifiedDamage, DamageEvent, nullptr, GetOwner());
+					ActiveDamageInfo.GetValue().CurrentIntervalTime = 0.0f;
+				}
 			}
 		}
 	}
