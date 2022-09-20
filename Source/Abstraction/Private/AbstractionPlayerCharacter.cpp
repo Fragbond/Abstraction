@@ -113,3 +113,16 @@ const float AAbstractionPlayerCharacter::GetCurrentHealth() const
 	}
 	return 0.0f;
 }
+
+void AAbstractionPlayerCharacter::HandleItemCollected()
+{
+	ItemsCollected++;
+	CameraShakeDemo(1);
+	GetWorld()->GetFirstPlayerController()->PlayDynamicForceFeedback(ForceFeedbackIntensity, ForceFeedbackDuration, true, false, true, false, EDynamicForceFeedbackAction::Start);
+	ItemCollected();
+}
+
+void AAbstractionPlayerCharacter::CameraShakeDemo(float Scale)
+{
+	GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(CamShake, Scale);
+}

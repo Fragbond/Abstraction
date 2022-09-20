@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyCameraShakeBase.h"
 #include "GameFramework/Character.h"
 #include "AbstractionPlayerCharacter.generated.h"
 
@@ -42,6 +43,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Abstraction")
 	void SetOnFire(float BaseDamage, float DamageTotalTime, float TakeDamageInterval);
 
+	UFUNCTION(BlueprintCallable)
+	void HandleItemCollected();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ItemCollected();
+
+	UFUNCTION()
+	void CameraShakeDemo(float Scale);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int ItemsCollected = 0;
 
 	FOnInteractionStart OnInteractionStart;
 	FOnInteractionCancel OnInteractionCancel;
@@ -69,5 +81,15 @@ protected:
 	UPROPERTY(EditAnywhere)
 	float TimeRestartLevelAfterDeath = 2.0f;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UMatineeCameraShake> CamShake;
+
+	APlayerController* PC;
+
 	FTimerHandle RestartLevelTimerHandle;
+
+	UPROPERTY(EditAnywhere, Category="Force Feedback")
+	float ForceFeedbackIntensity = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Force Feedback")
+	float ForceFeedbackDuration = 1.0f;
 };
