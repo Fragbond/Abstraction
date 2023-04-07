@@ -49,4 +49,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 	ATriggerBox* TriggerBox;
 
+	UPROPERTY()
+	UAudioComponent* AudioComponent = nullptr;
+
 };

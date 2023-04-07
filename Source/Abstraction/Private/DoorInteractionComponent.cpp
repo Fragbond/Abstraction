@@ -37,6 +37,7 @@ void UDoorInteractionComponent::BeginPlay()
 	FinalRotation = GetOwner()->GetActorRotation() + DesiredRotation;
 	//ensure TimeToRotate is greater than EPSILON
 	CurrentRotationTime = 0.0f;
+	//check(AudioComponent);
 
 }
 
@@ -54,6 +55,7 @@ void UDoorInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 			if (PlayerPawn && TriggerBox->IsOverlappingActor(PlayerPawn))
 			{
 				CurrentRotationTime += DeltaTime;
+				AudioComponent->Play();
 				const float RotationAlpha = FMath::Clamp(CurrentRotationTime / TimeToRotate, 0.0f, 1.0f);
 				const FRotator CurrentRoation = FMath::Lerp(StartRotation, FinalRotation, RotationAlpha);
 				GetOwner()->SetActorRotation(CurrentRoation);
